@@ -1,0 +1,76 @@
+﻿@{
+	ViewBag.Title = "Cuarto";
+}
+
+<p>Descripción de la sala: @ViewBag.DescripcionSala</p>
+
+
+
+
+<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
+
+<div class="container">
+	<div class="row clearfix">
+		<div class="col-lg-12">
+			<div class="card chat-app">
+				<div class="chat">
+					<div class="chat-header clearfix">
+						<div class="row">
+						</div>
+					</div>
+						<div class="row">
+							<div class="col-6">
+								<div id="messages"></div>
+							</div>
+							<div class="col-6">
+								<div id="notifications"></div>
+							</div>
+						</div>
+					<div class="chat-message clearfix">
+						<input class="form-control" type="text" placeholder="usuario" id="user" />
+						<div class="input-group mb-0">
+							
+							<input type="text" class="form-control" placeholder="Escribir..." id="message">
+							<div class="input-group mb-0">
+								<button id="btnSend" type="button" class="btn"><i class="fa fa-send"></i></button>
+							</div>
+
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+
+<script src="~/lib/microsoft/signalr/dist/browser/signalr.min.js"></script>
+
+<script>
+	var connection = new signalR.HubConnectionBuilder().withUrl("/chat").build();
+
+	connection.start().then(() => {
+		connection.invoke("AddToGroup", "@Model")
+	}).catch((e) => console.error(e));
+
+	document.getElementById("btnSend").addEventListener("click", (event) => {
+		let room = "@Model";
+		let user = document.getElementById("user").value;
+		let message = document.getElementById("message").value;
+
+		connection.invoke("SendMessage", room, user, message)
+			.catch((err) => console.error(err.toString()))
+
+		document.getElementById("message").value = "";
+		document.getElementById("message").focus() = "";
+
+		event.preventDefault();
+	})
+
+	connection.on("ReceiveMessage", (user, message) => {
+		var message = "<div ><b>" + user + " dice: </b>" + message + "</div>";
+		document.getElementById("messages").innerHTML =
+			message + document.getElementById("messages").innerHTML;
+	});
+</script>
